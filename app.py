@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
 # Bright Data API Key (Replace with your key)
-BRIGHT_DATA_KEY = "your_bright_data_key"
+BRIGHT_DATA_KEY = bcf3046c859eee4edb677b2e3033c9798aa3fd31a01a71a86a02c2b23266b00f
 
 # === STREAMLIT UI ===
 st.title("Zillow Mortgage vs Rent Dashboard")
