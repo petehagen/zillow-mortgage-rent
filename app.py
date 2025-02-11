@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
 # Ensure Playwright browsers are installed
-os.system("playwright install chromium")
+os.system("playwright install --with-deps")
 
 # === STREAMLIT UI ===
 st.title("Zillow Mortgage vs Rent Dashboard")
@@ -32,11 +32,14 @@ def calculate_mortgage(home_price, down_payment_pct, interest_rate, loan_term):
 # === FETCH ZILLOW LISTINGS USING PLAYWRIGHT ===
 def fetch_zillow_listings():
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(
+            headless=True, 
+            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu", "--single-process"]
+        )
         page = browser.new_page()
         
         zillow_search_url = f"https://www.zillow.com/homes/{location.replace(' ', '-')}/"
-        page.goto(zillow_search_url)
+        page.goto(zillow_search_url, wait_until="load")
         time.sleep(5)  # Allow JavaScript to load
         
         soup = BeautifulSoup(page.content(), 'html.parser')
