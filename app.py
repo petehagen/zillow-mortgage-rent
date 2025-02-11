@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
-# Bright Data Proxy Credentials (Replace with your actual username & password)
+# Bright Data Proxy Credentials (Replace with your actual Bright Data username & password)
 BRIGHT_DATA_USERNAME = "petehagen@icloud.com"
 BRIGHT_DATA_PASSWORD = "3na0m7tdcaca"
 
@@ -14,14 +14,15 @@ BRIGHT_DATA_PASSWORD = "3na0m7tdcaca"
 BRIGHT_DATA_PROXY = "http://brd.superproxy.io:22225"
 
 # === STREAMLIT UI ===
-st.title("Zillow Mortgage vs Rent Dashboard")
+st.title("🏡 Zillow Mortgage vs Rent Dashboard")
+st.markdown("Easily compare estimated mortgage payments to rent prices to find great deals!")
 
-location = st.text_input("Enter Location (City, State)", "Portland, OR")
-max_price = st.number_input("Max Home Price", min_value=50000, max_value=2000000, value=600000, step=50000)
-loan_term = st.slider("Loan Term (years)", 10, 40, 30)
-interest_rate = st.slider("Interest Rate (%)", 1.0, 10.0, 7.0) / 100
-down_payment_pct = st.slider("Down Payment (%)", 0.0, 50.0, 20.0) / 100
-mortgage_vs_rent_threshold = st.slider("Max Mortgage-to-Rent Ratio", 0.5, 1.0, 0.8)
+location = st.text_input("📍 Enter Location (City, State)", "Portland, OR")
+max_price = st.number_input("💰 Max Home Price ($)", min_value=50000, max_value=2000000, value=600000, step=50000)
+loan_term = st.slider("📆 Loan Term (years)", 10, 40, 30)
+interest_rate = st.slider("📊 Interest Rate (%)", 1.0, 10.0, 7.0) / 100
+down_payment_pct = st.slider("🏦 Down Payment (%)", 0.0, 50.0, 20.0) / 100
+mortgage_vs_rent_threshold = st.slider("🏠 Max Mortgage-to-Rent Ratio (e.g., 0.50 = Mortgage is 50% of Rent)", 0.5, 1.5, 0.8)
 
 # === FUNCTION TO CALCULATE MONTHLY MORTGAGE ===
 def calculate_mortgage(home_price, down_payment_pct, interest_rate, loan_term):
@@ -43,7 +44,7 @@ def fetch_zillow_listings():
         response = requests.get(zillow_search_url, proxies=proxies, auth=auth, verify=False)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
-        st.error(f"Error fetching Zillow listings: {e}")
+        st.error(f"❌ Error fetching Zillow listings: {e}")
         return []
     
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -66,16 +67,16 @@ def fetch_zillow_listings():
             if rent_ratio and rent_ratio <= mortgage_vs_rent_threshold:
                 data.append([price, mortgage, rent_estimate, rent_ratio, listing_url])
         except Exception as e:
-            st.write(f"Skipping listing due to error: {e}")
+            st.write(f"⚠️ Skipping listing due to error: {e}")
             continue  # Skip listings with missing data
     
     return data
 
 # === DISPLAY RESULTS ===
 data = fetch_zillow_listings()
-df = pd.DataFrame(data, columns=["Price", "Mortgage", "Rent Estimate", "Mortgage-to-Rent Ratio", "URL"])
+df = pd.DataFrame(data, columns=["🏠 Price", "💵 Mortgage", "📊 Rent Estimate", "🔢 Mortgage-to-Rent Ratio", "🔗 URL"])
 if not df.empty:
-    st.write("### Filtered Zillow Listings")
+    st.write("### 🏡 Filtered Zillow Listings")
     st.dataframe(df)
 else:
-    st.write("No listings found matching criteria.")
+    st.write("❌ No listings found matching criteria.")
