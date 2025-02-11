@@ -6,11 +6,12 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
-# Bright Data API Key (Replace with your key)
-BRIGHT_DATA_KEY = "bcf3046c859eee4edb677b2e3033c9798aa3fd31a01a71a86a02c2b23266b00f"
+# Bright Data Proxy Credentials (Replace with your actual username & password)
+BRIGHT_DATA_USERNAME = "petehagen@icloud.com"
+BRIGHT_DATA_PASSWORD = "3na0m7tdcaca"
 
-# Bright Data Proxy with API Key Authentication
-BRIGHT_DATA_PROXY = f"http://brd-customer-hl_3b2cd44c-zone-unblocker:{BRIGHT_DATA_KEY}@brd.superproxy.io:22225"
+# Bright Data Proxy Address
+BRIGHT_DATA_PROXY = "http://brd.superproxy.io:22225"
 
 # === STREAMLIT UI ===
 st.title("Zillow Mortgage vs Rent Dashboard")
@@ -36,9 +37,10 @@ def calculate_mortgage(home_price, down_payment_pct, interest_rate, loan_term):
 def fetch_zillow_listings():
     zillow_search_url = f"https://www.zillow.com/homes/{location.replace(' ', '-')}/"
     proxies = {"http": BRIGHT_DATA_PROXY, "https": BRIGHT_DATA_PROXY}
+    auth = (BRIGHT_DATA_USERNAME, BRIGHT_DATA_PASSWORD)
     
     try:
-        response = requests.get(zillow_search_url, proxies=proxies, verify=False)
+        response = requests.get(zillow_search_url, proxies=proxies, auth=auth, verify=False)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         st.error(f"Error fetching Zillow listings: {e}")
