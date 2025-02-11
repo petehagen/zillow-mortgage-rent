@@ -9,8 +9,8 @@ from urllib.parse import urljoin
 # Zyte Proxy API Key (Replace with your actual Zyte API Key)
 ZYTE_API_KEY = "d728bad0cd6b4eca95a4af08aed1da30"
 
-# Zyte Proxy URL
-ZYTE_PROXY_URL = "https://api.zyte.com:8011"
+# Zyte Proxy URL (Using HTTP instead of HTTPS to fix SSL issue)
+ZYTE_PROXY_URL = "http://api.zyte.com:8011"
 
 # === STREAMLIT UI ===
 st.title("🏡 Zillow Mortgage vs Rent Dashboard")
@@ -41,7 +41,7 @@ def fetch_zillow_listings():
     
     try:
         st.write("🔍 Testing Zyte proxy connection...")
-        test_response = requests.get("https://ipinfo.io", proxies=proxies, headers=headers, timeout=10)
+        test_response = requests.get("http://ipinfo.io", proxies=proxies, headers=headers, timeout=10)
         if test_response.status_code == 200:
             st.write("✅ Proxy connection successful!")
         else:
