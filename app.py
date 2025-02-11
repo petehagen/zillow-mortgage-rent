@@ -11,7 +11,7 @@ import base64
 ZYTE_API_KEY = "d728bad0cd6b4eca95a4af08aed1da30"
 
 # Encode API Key for Basic Authentication
-encoded_auth = base64.b64encode(f":{ZYTE_API_KEY}".encode()).decode()
+encoded_auth = base64.b64encode(f"{ZYTE_API_KEY}:".encode()).decode()
 
 # Zyte Proxy URL (Using HTTP instead of HTTPS to fix SSL issue)
 ZYTE_PROXY_URL = "http://api.zyte.com:8011"
@@ -37,21 +37,35 @@ def calculate_mortgage(home_price, down_payment_pct, interest_rate, loan_term):
                        ((1 + monthly_rate) ** num_payments - 1)
     return round(mortgage_payment, 2)
 
+# === TEST ZYTE AUTHENTICATION ===
+def test_zyte_auth():
+    test_url = "http://ipinfo.io"
+    proxies = {"http": ZYTE_PROXY_URL, "https": ZYTE_PROXY_URL}
+    headers = {"Authorization": f"Basic {encoded_auth}"}
+    
+    try:
+        st.write("🔍 Testing Zyte proxy authentication...")
+        response = requests.get(test_url, proxies=proxies, headers=headers, timeout=10)
+        if response.status_code == 200:
+            st.write("✅ Zyte Authentication Successful!")
+        else:
+            st.error(f"❌ Zyte Authentication Failed! Status Code: {response.status_code}, Response: {response.text}")
+            return False
+    except requests.exceptions.RequestException as e:
+        st.error(f"❌ Zyte Authentication Error: {e}")
+        return False
+    return True
+
 # === FETCH ZILLOW LISTINGS USING ZYTE ===
 def fetch_zillow_listings():
+    if not test_zyte_auth():
+        return []  # Stop execution if Zyte auth fails
+    
     zillow_search_url = f"https://www.zillow.com/homes/{location.replace(' ', '-')}/"
     proxies = {"http": ZYTE_PROXY_URL, "https": ZYTE_PROXY_URL}
     headers = {"Authorization": f"Basic {encoded_auth}"}
     
     try:
-        st.write("🔍 Testing Zyte proxy connection...")
-        test_response = requests.get("http://ipinfo.io", proxies=proxies, headers=headers, timeout=10)
-        if test_response.status_code == 200:
-            st.write("✅ Proxy connection successful!")
-        else:
-            st.error(f"❌ Proxy test failed! Status Code: {test_response.status_code}")
-            return []
-        
         response = requests.get(zillow_search_url, proxies=proxies, headers=headers, timeout=15)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
