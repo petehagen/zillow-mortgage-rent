@@ -1,6 +1,11 @@
-import requests
+import time
 import pandas as pd
 import streamlit as st
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
@@ -24,25 +29,25 @@ def calculate_mortgage(home_price, down_payment_pct, interest_rate, loan_term):
                        ((1 + monthly_rate) ** num_payments - 1)
     return round(mortgage_payment, 2)
 
-# === SCRAPING ZILLOW LISTINGS ===
+# === SETUP SELENIUM WEBDRIVER ===
+chrome_options = Options()
+chrome_options.add_argument("--headless")  # Run Chrome in headless mode
+chrome_options.add_argument("--disable-gpu")
+chrome_options.add_argument("--window-size=1920x1080")
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
+
+service = Service(ChromeDriverManager().install())
+driver = webdriver.Chrome(service=service, options=chrome_options)
+
+# === FETCH ZILLOW LISTINGS ===
 zillow_search_url = f"https://www.zillow.com/homes/{location.replace(' ', '-')}/"
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Referer": "https://www.google.com/",
-}
+driver.get(zillow_search_url)
+time.sleep(5)  # Allow time for JavaScript to load
 
-session = requests.Session()
-session.headers.update(headers)
+soup = BeautifulSoup(driver.page_source, 'html.parser')
+driver.quit()
 
-response = session.get(zillow_search_url)
-
-if response.status_code != 200:
-    st.error(f"Error fetching Zillow listings. Status Code: {response.status_code}")
-    st.write(response.text[:1000])  # Debugging: Show first 1000 chars of response
-    st.stop()
-
-soup = BeautifulSoup(response.text, 'html.parser')
 listings = soup.find_all("article")  # Adjust selector if necessary
 
 data = []
