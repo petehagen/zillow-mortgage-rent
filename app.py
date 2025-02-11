@@ -2,12 +2,12 @@ import time
 import os
 import pandas as pd
 import streamlit as st
-from playwright.sync_api import sync_playwright
+import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
-# Ensure Playwright browsers are installed
-os.system("playwright install --with-deps")
+# Bright Data API Key (Replace with your key)
+BRIGHT_DATA_KEY = "your_bright_data_key"
 
 # === STREAMLIT UI ===
 st.title("Zillow Mortgage vs Rent Dashboard")
@@ -29,22 +29,17 @@ def calculate_mortgage(home_price, down_payment_pct, interest_rate, loan_term):
                        ((1 + monthly_rate) ** num_payments - 1)
     return round(mortgage_payment, 2)
 
-# === FETCH ZILLOW LISTINGS USING PLAYWRIGHT ===
+# === FETCH ZILLOW LISTINGS USING BRIGHT DATA ===
 def fetch_zillow_listings():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(
-            headless=True, 
-            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu", "--single-process"]
-        )
-        page = browser.new_page()
-        
-        zillow_search_url = f"https://www.zillow.com/homes/{location.replace(' ', '-')}/"
-        page.goto(zillow_search_url, wait_until="load")
-        time.sleep(5)  # Allow JavaScript to load
-        
-        soup = BeautifulSoup(page.content(), 'html.parser')
-        browser.close()
+    zillow_search_url = f"https://www.zillow.com/homes/{location.replace(' ', '-')}/"
+    bright_data_url = f"https://brd.superproxy.io/{BRIGHT_DATA_KEY}?url={zillow_search_url}"
     
+    response = requests.get(bright_data_url)
+    if response.status_code != 200:
+        st.error(f"Error fetching Zillow listings. Status Code: {response.status_code}")
+        return []
+    
+    soup = BeautifulSoup(response.text, 'html.parser')
     listings = soup.find_all("article")  # Adjust selector if necessary
     
     data = []
