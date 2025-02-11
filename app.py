@@ -25,12 +25,21 @@ def calculate_mortgage(home_price, down_payment_pct, interest_rate, loan_term):
     return round(mortgage_payment, 2)
 
 # === SCRAPING ZILLOW LISTINGS ===
-zillow_search_url = f"https://www.zillow.com/{location.replace(' ', '-')}/"  # Modify URL for location
-headers = {"User-Agent": "Mozilla/5.0"}  # Bypass Zillow bot detection
+zillow_search_url = f"https://www.zillow.com/homes/{location.replace(' ', '-')}/"
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Referer": "https://www.google.com/",
+}
 
-response = requests.get(zillow_search_url, headers=headers)
+session = requests.Session()
+session.headers.update(headers)
+
+response = session.get(zillow_search_url)
+
 if response.status_code != 200:
-    st.error("Error fetching Zillow listings. Zillow may be blocking requests.")
+    st.error(f"Error fetching Zillow listings. Status Code: {response.status_code}")
+    st.write(response.text[:1000])  # Debugging: Show first 1000 chars of response
     st.stop()
 
 soup = BeautifulSoup(response.text, 'html.parser')
@@ -52,7 +61,8 @@ for listing in listings:
         
         if rent_ratio and rent_ratio <= mortgage_vs_rent_threshold:
             data.append([price, mortgage, rent_estimate, rent_ratio, listing_url])
-    except:
+    except Exception as e:
+        st.write(f"Skipping listing due to error: {e}")
         continue  # Skip listings with missing data
 
 # === DISPLAY RESULTS ===
