@@ -1,9 +1,13 @@
 import time
+import os
 import pandas as pd
 import streamlit as st
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+
+# Ensure Playwright browsers are installed
+os.system("playwright install chromium")
 
 # === STREAMLIT UI ===
 st.title("Zillow Mortgage vs Rent Dashboard")
