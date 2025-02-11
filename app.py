@@ -10,8 +10,8 @@ from urllib.parse import urljoin
 BRIGHT_DATA_USERNAME = "petehagen@icloud.com"
 BRIGHT_DATA_PASSWORD = "3na0m7tdcaca"
 
-# Bright Data Proxy Address
-BRIGHT_DATA_PROXY = "http://brd.superproxy.io:22225"
+# Bright Data Proxy Address (Correct Format)
+BRIGHT_DATA_PROXY = f"http://{BRIGHT_DATA_USERNAME}:{BRIGHT_DATA_PASSWORD}@brd.superproxy.io:22225"
 
 # === STREAMLIT UI ===
 st.title("🏡 Zillow Mortgage vs Rent Dashboard")
@@ -38,10 +38,17 @@ def calculate_mortgage(home_price, down_payment_pct, interest_rate, loan_term):
 def fetch_zillow_listings():
     zillow_search_url = f"https://www.zillow.com/homes/{location.replace(' ', '-')}/"
     proxies = {"http": BRIGHT_DATA_PROXY, "https": BRIGHT_DATA_PROXY}
-    auth = (BRIGHT_DATA_USERNAME, BRIGHT_DATA_PASSWORD)
     
     try:
-        response = requests.get(zillow_search_url, proxies=proxies, auth=auth, verify=False)
+        st.write("🔍 Testing proxy connection...")
+        test_response = requests.get("https://ipinfo.io", proxies=proxies, timeout=10)
+        if test_response.status_code == 200:
+            st.write("✅ Proxy connection successful!")
+        else:
+            st.error(f"❌ Proxy test failed! Status Code: {test_response.status_code}")
+            return []
+        
+        response = requests.get(zillow_search_url, proxies=proxies, timeout=15)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         st.error(f"❌ Error fetching Zillow listings: {e}")
