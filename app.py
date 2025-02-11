@@ -9,6 +9,9 @@ from urllib.parse import urljoin
 # Bright Data API Key (Replace with your key)
 BRIGHT_DATA_KEY = "bcf3046c859eee4edb677b2e3033c9798aa3fd31a01a71a86a02c2b23266b00f"
 
+# Bright Data Proxy with API Key Authentication
+BRIGHT_DATA_PROXY = f"http://brd-customer-hl_3b2cd44c-zone-unblocker:{BRIGHT_DATA_KEY}@brd.superproxy.io:22225"
+
 # === STREAMLIT UI ===
 st.title("Zillow Mortgage vs Rent Dashboard")
 
@@ -32,11 +35,13 @@ def calculate_mortgage(home_price, down_payment_pct, interest_rate, loan_term):
 # === FETCH ZILLOW LISTINGS USING BRIGHT DATA ===
 def fetch_zillow_listings():
     zillow_search_url = f"https://www.zillow.com/homes/{location.replace(' ', '-')}/"
-    bright_data_url = f"https://brd.superproxy.io/{BRIGHT_DATA_KEY}?url={zillow_search_url}"
+    proxies = {"http": BRIGHT_DATA_PROXY, "https": BRIGHT_DATA_PROXY}
     
-    response = requests.get(bright_data_url)
-    if response.status_code != 200:
-        st.error(f"Error fetching Zillow listings. Status Code: {response.status_code}")
+    try:
+        response = requests.get(zillow_search_url, proxies=proxies, verify=False)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        st.error(f"Error fetching Zillow listings: {e}")
         return []
     
     soup = BeautifulSoup(response.text, 'html.parser')
