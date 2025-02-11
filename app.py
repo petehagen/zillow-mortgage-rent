@@ -6,12 +6,11 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
-# Bright Data Proxy Credentials (Replace with your actual Bright Data username & password)
-BRIGHT_DATA_USERNAME = "petehagen@icloud.com"
-BRIGHT_DATA_PASSWORD = "3na0m7tdcaca"
+# Zyte Proxy API Key (Replace with your actual Zyte API Key)
+ZYTE_API_KEY = "d728bad0cd6b4eca95a4af08aed1da30"
 
-# Bright Data Proxy Address (Correct Format)
-BRIGHT_DATA_PROXY = f"http://{BRIGHT_DATA_USERNAME}:{BRIGHT_DATA_PASSWORD}@brd.superproxy.io:22225"
+# Zyte Proxy URL
+ZYTE_PROXY_URL = "https://api.zyte.com:8011"
 
 # === STREAMLIT UI ===
 st.title("🏡 Zillow Mortgage vs Rent Dashboard")
@@ -34,21 +33,22 @@ def calculate_mortgage(home_price, down_payment_pct, interest_rate, loan_term):
                        ((1 + monthly_rate) ** num_payments - 1)
     return round(mortgage_payment, 2)
 
-# === FETCH ZILLOW LISTINGS USING BRIGHT DATA ===
+# === FETCH ZILLOW LISTINGS USING ZYTE ===
 def fetch_zillow_listings():
     zillow_search_url = f"https://www.zillow.com/homes/{location.replace(' ', '-')}/"
-    proxies = {"http": BRIGHT_DATA_PROXY, "https": BRIGHT_DATA_PROXY}
+    proxies = {"http": ZYTE_PROXY_URL, "https": ZYTE_PROXY_URL}
+    headers = {"Authorization": f"Basic {ZYTE_API_KEY}"}
     
     try:
-        st.write("🔍 Testing proxy connection...")
-        test_response = requests.get("https://ipinfo.io", proxies=proxies, timeout=10)
+        st.write("🔍 Testing Zyte proxy connection...")
+        test_response = requests.get("https://ipinfo.io", proxies=proxies, headers=headers, timeout=10)
         if test_response.status_code == 200:
             st.write("✅ Proxy connection successful!")
         else:
             st.error(f"❌ Proxy test failed! Status Code: {test_response.status_code}")
             return []
         
-        response = requests.get(zillow_search_url, proxies=proxies, timeout=15)
+        response = requests.get(zillow_search_url, proxies=proxies, headers=headers, timeout=15)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         st.error(f"❌ Error fetching Zillow listings: {e}")
