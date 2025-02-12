@@ -5,11 +5,15 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+import base64
 
 # Zyte Proxy API Key (Replace with your actual Zyte API Key)
-ZYTE_API_KEY = "d728bad0cd6b4eca95a4af08aed1da30"
+ZYTE_API_KEY = "039dcd097b3643b9a0ca069a2cdb21dc"
 
-# Zyte Proxy URL (Using HTTP instead of HTTPS to fix SSL issue)
+# Encode API Key for Basic Authentication (Zyte requires an empty username)
+encoded_auth = base64.b64encode(f":{ZYTE_API_KEY}".encode()).decode()
+
+# Zyte Proxy URL (Using HTTP only to avoid SSL issues)
 ZYTE_PROXY_URL = "http://api.zyte.com:8011"
 
 # === STREAMLIT UI ===
@@ -36,8 +40,8 @@ def calculate_mortgage(home_price, down_payment_pct, interest_rate, loan_term):
 # === TEST ZYTE AUTHENTICATION ===
 def test_zyte_auth():
     test_url = "http://ipinfo.io"
-    proxies = {"http": ZYTE_PROXY_URL, "https": ZYTE_PROXY_URL}
-    headers = {"Authorization": f"Basic {ZYTE_API_KEY}"}
+    proxies = {"http": ZYTE_PROXY_URL}
+    headers = {"Proxy-Authorization": f"Basic {encoded_auth}"}
     
     try:
         st.write("🔍 Testing Zyte proxy authentication...")
@@ -60,8 +64,8 @@ def fetch_zillow_listings():
         return []  # Stop execution if Zyte auth fails
     
     zillow_search_url = f"https://www.zillow.com/homes/{location.replace(' ', '-')}/"
-    proxies = {"http": ZYTE_PROXY_URL, "https": ZYTE_PROXY_URL}
-    headers = {"Authorization": f"Basic {ZYTE_API_KEY}"}
+    proxies = {"http": ZYTE_PROXY_URL}
+    headers = {"Proxy-Authorization": f"Basic {encoded_auth}"}
     
     try:
         response = requests.get(zillow_search_url, proxies=proxies, headers=headers, timeout=15)
